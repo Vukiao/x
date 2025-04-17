@@ -23,8 +23,8 @@ def save_data_to_file(data, filename):
         print(f"Error: {e}")
 
 # URL của các API
-url_prx = "http://103.186.101.138:1110/api/prx"
-url_vn = "http://103.186.101.138:1110/api/vn"
+url_prx = "http://103.75.183.153:1110/api/prx"
+url_vn = "http://103.75.183.153:1110/api/vn"
 
 # Hỏi người dùng có muốn tải proxy vn không
 use_vn = input("Có dùng proxy VN không? (y/n): ").strip().lower()
