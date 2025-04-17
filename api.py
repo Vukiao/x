@@ -25,7 +25,7 @@ def run_api():
 
     # Bước 1: chạy prx.py
     try:
-        subprocess.run(["python3", "prx.py", prx_flag], capture_output=True, text=True)
+        subprocess.run(["python", "prx.py", prx_flag], capture_output=True, text=True)
     except Exception as e:
         return jsonify({"error": f"Lỗi khi chạy prx.py: {str(e)}"}), 500
 
