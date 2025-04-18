@@ -24,8 +24,8 @@ def save_data_to_file(data, filename):
         print(f"Lỗi khi lưu: {e}")
 
 # URL của các API
-url_prx = "http://103.75.183.153:1110/api/prx"
-url_vn = "http://103.75.183.153:1110/api/vn"
+url_prx = "http://160.250.247.43:1110/api/prx"
+url_vn = "http://160.250.247.43:1110/api/vn"
 
 # Kiểm tra tham số dòng lệnh
 if len(sys.argv) < 2:
