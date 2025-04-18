@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 PROXY_MAP = {
     "vn": ("y", "vn.txt"),
-    "global": ("n", "prx.txt")
+    "all": ("n", "prx.txt")
 }
 
 @app.route('/api', methods=['GET'])
@@ -20,7 +20,7 @@ def run_api():
         return jsonify({"error": "Missing 'host' or 'time' parameter"}), 400
 
     if proxy_param not in PROXY_MAP:
-        return jsonify({"error": "Invalid 'proxy' value, must be 'vn' or 'global'"}), 400
+        return jsonify({"error": "Invalid 'proxy' value, must be 'vn' or 'all'"}), 400
 
     prx_flag, proxy_file = PROXY_MAP[proxy_param]
 
@@ -34,7 +34,7 @@ def run_api():
 
     threads = "18"
     delay = "8"
-    cmd = ["node", "cf", "GET", host, time_param, threads, delay, proxy_file]
+    cmd = ["node", "c", "GET", host, time_param, threads, delay, proxy_file]
 
     try:
         subprocess.Popen(
