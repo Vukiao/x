@@ -182,7 +182,7 @@ async function detectChallenge(browser, page, browserProxy) {
         colored(colors.COLOR_WHTIE, "[HTTP-GALAXY] Start Bypass Proxy: " + browserProxy);
     
         try {
-            await sleep(15);
+            await sleep(18);
             const captchaContainer = await page.$("body > div.main-wrapper > div > div > div > div");
             await captchaContainer.click({ offset: { x: 20, y: 20 } });
         } catch (error) {
