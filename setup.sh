@@ -10,12 +10,6 @@ LINE_NUM=$1
 
 # Cập nhật hệ thống và tạo thư mục làm việc
 apt update -y
-mkdir -p api
-cd api
-# Tải source từ GitHub và giải nén
-wget https://github.com/Vukiao/x/archive/refs/heads/main.zip
-unzip main.zip
-cd x-main
 
 # Cài đặt các thư viện npm cần thiết
 npm install axios hpack chalk fs https-proxy-agent http-proxy-agent async request puppeteer-extra puppeteer-extra-plugin-stealth puppeteer-extra-plugin-adblocker ua-parser-js user-agents crypto os colors random-referer puppeteer
