@@ -3,7 +3,7 @@ import time
 
 # Thay thế bằng token và chat_id của bạn
 TELEGRAM_BOT_TOKEN = '7991506659:AAG6y7T88mJflcQZw8EYETLAPwqVdnyPaG8'
-CHAT_ID = 'YOUR_CHAT_ID'
+CHAT_ID = '-4769360715'
 
 def get_ngrok_url():
     try:
