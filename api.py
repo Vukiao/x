@@ -109,7 +109,7 @@ def run_browser():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Proxy file not found: {proxy_file}"}), 500
 
-    cmd = ["node", "browser.js", host, "8", proxy_file, "64", "200"]
+    cmd = ["node", "browser.js", host, "8", proxy_file, "40", time_param]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Error running browser.js: {err}"}), 500
