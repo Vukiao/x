@@ -24,12 +24,13 @@ def save_data_to_file(data, filename):
         print(f"Lỗi khi lưu: {e}")
 
 # URL của các API
-url_prx = "http://103.186.101.138:1110//api/prx"
-url_vn = "http://103.186.101.138:1110//api/vn"
+url_prx = "http://103.186.101.138:1110/api/prx"
+url_vn = "http://103.186.101.138:1110/api/vn"
+url_live = "http://103.186.101.138:1110/api/live"  # Thêm URL live
 
 # Kiểm tra tham số dòng lệnh
 if len(sys.argv) < 2:
-    print("Cách dùng: python3 api.py y|n")
+    print("Cách dùng: python3 api.py y|n|v")
     sys.exit(1)
 
 arg = sys.argv[1].lower()
@@ -43,5 +44,9 @@ elif arg == 'n':
     data = download_data(url_prx)
     if data:
         save_data_to_file(data, 'prx.txt')
+elif arg == 'live':
+    data = download_data(url_live)
+    if data:
+        save_data_to_file(data, 'live.txt')  # Lưu vào tệp live.txt
 else:
-    print("Tham số không hợp lệ. Dùng 'y' để lấy proxy VN, 'n' để lấy proxy quốc tế.")
+    print("Tham số không hợp lệ. Dùng 'y' để lấy proxy VN, 'n' để lấy proxy quốc tế, 'v' để lấy dữ liệu live.")
