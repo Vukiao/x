@@ -44,7 +44,7 @@ elif arg == 'n':
     data = download_data(url_prx)
     if data:
         save_data_to_file(data, 'prx.txt')
-elif arg == 'live':
+elif arg == 'v':
     data = download_data(url_live)
     if data:
         save_data_to_file(data, 'live.txt')  # Lưu vào tệp live.txt
