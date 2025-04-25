@@ -8,7 +8,7 @@ app = Flask(__name__)
 PROXY_MAP = {
     "vn": ("y", "vn.txt"),
     "all": ("n", "prx.txt"),
-    "live": ("l", "live.txt")
+    "live": ("v", "live.txt")
 }
 
 def get_proxy_file(proxy_key):
