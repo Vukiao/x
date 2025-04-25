@@ -91,29 +91,23 @@ def check_live_proxies(filename, num_threads):
         for thread in threads:
             thread.join()
 
-    with open("live2.txt", "r") as f:
+    with open("live.txt", "r") as f:
         lines = f.read().splitlines()
 
-    print("ALL is Done Total Proxy Live:", len(lines))
-    print("Đã lưu vào file live2.txt")
+    print("ALL is Done. Total Proxy Live:", len(lines))
+    print("Đã lưu vào file live.txt")
     print("Tool sẽ tự động dừng trong vài giây nữa! Cám ơn đã sử dụng tool chúng tôi!!")
-
-def typing_effect(text, speed=0):
-    for char in text:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(speed + random.uniform(-0, 0))
-    print()
 
 if __name__ == "__main__":
     try:
-        time.sleep(0)
         clear()
-        typing_effect("Nhập tên file proxy để kiểm tra (VD: proxy.txt): ")
-        filename = input("> \033[0m")
+        if len(sys.argv) < 2:
+            print("Vui lòng cung cấp tên file proxy. Ví dụ: python check.py proxy.txt")
+            sys.exit(1)
+        filename = sys.argv[1]
         num_threads = 1500
         check_live_proxies(filename, num_threads)
     except KeyboardInterrupt:
-        print("Đang dừng tool vui lòng chờ giây lát....")
+        print("Đang dừng tool, vui lòng chờ giây lát....")
         time.sleep(1)
         exit()
