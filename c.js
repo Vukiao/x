@@ -83,8 +83,8 @@ if (!reqmethod || !target || !time || !threads || !ratelimit || !proxyfile) {
     console.clear();
     
     console.log(`${chalk.green('                                22 October, 2024')}\n`);
-    console.log(`${chalk.blue('CRISX v1.0 || Developers method : @needmoreloli (Crisxtop) with luvvv ^^')}`);
-    console.log(`${chalk.red('Developers of method: @needmoreloli - recoding method')}\n`);
+    console.log(`${chalk.blue('@khaidaza^^')}`);
+    console.log(`${chalk.red('Developers @khaidaza')}\n`);
     console.log(`${chalk.cyan.underline('DESCRIPTION:')}\n`);
     
     console.log(chalk.red.underline('Usage:'));
@@ -642,13 +642,13 @@ if (shitty) {
     Promise.race([axiosPromise, timeoutPromise])
         .then((response) => {
             console.clear();
-            console.log('@needmoreloli @@// | ATTACK IS RUNNING');
+            console.log('ATTACK IS RUNNING');
             const { status, data } = response;
             console.log(`> Precheck: ${status}`);
         })
         .catch((error) => {
             console.clear();
-            console.log('@needmoreloli @@// | ATTACK IS RUNNING');
+            console.log('ATTACK IS RUNNING');
 
             if (error.message === 'Request timed out') {
                 console.log('> Precheck: Request Timed Out');
