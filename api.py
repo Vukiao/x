@@ -120,9 +120,9 @@ def run_browser():
         return jsonify({"error": f"Lỗi khi chạy browser.js: {err}"}), 500
 
     return jsonify({"status": "browser đã khởi động", "host": host, "proxy": proxy_file})
-    # Route Flood
+    # Route seo
 @app.route('/api/seo', methods=['GET'])
-def run_flood():
+def run_seo():
     host = request.args.get('host')
     time_param = request.args.get('time')
     proxy_key = request.args.get('proxy', 'vn').lower()
