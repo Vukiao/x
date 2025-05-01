@@ -141,7 +141,7 @@ def run_flood():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
-    cmd = ["node", "ya", host, time_param, "8", "45", proxy_file]
+    cmd = ["node", "ya", host, time_param, "15", "15", proxy_file]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy seo: {err}"}), 500
