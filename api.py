@@ -142,7 +142,7 @@ def run_rate():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
-    cmd = ["node", "c", "GET", host, time_param, "18", "8", "10", proxy_file]
+    cmd = ["node", "c", "GET", host, time_param, "18", "8", proxy_file, "--limit", "true"]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy ratelimit: {err}"}), 500
