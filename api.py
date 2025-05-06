@@ -120,6 +120,35 @@ def run_browser():
         return jsonify({"error": f"Lỗi khi chạy browser.js: {err}"}), 500
 
     return jsonify({"status": "browser đã khởi động", "host": host, "proxy": proxy_file})
+
+# Route ratelimit
+@app.route('/api/rate', methods=['GET'])
+def run_rate():
+    host = request.args.get('host')
+    time_param = request.args.get('time')
+    proxy_key = request.args.get('proxy', 'vn').lower()
+
+    if not host or not time_param:
+        return jsonify({"error": "Thiếu 'host' hoặc 'time'"}), 400
+
+    prx_flag, proxy_file = get_proxy_file(proxy_key)
+    if not proxy_file:
+        return jsonify({"error": "Proxy không hợp lệ, phải là 'vn', 'all' hoặc 'live'"}), 400
+
+    ok, err = run_prx_script(prx_flag)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy prx.py: {err}"}), 500
+
+    if not os.path.exists(proxy_file):
+        return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
+
+    cmd = ["node", "c", "GET", host, time_param, "18", "8", "10", proxy_file]
+    ok, err = start_background_node(cmd)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy ratelimit: {err}"}), 500
+
+    return jsonify({"status": "ratelimit đã khởi động", "host": host, "proxy": proxy_file})
+
     # Route seo
 @app.route('/api/seo', methods=['GET'])
 def run_seo():
@@ -147,6 +176,33 @@ def run_seo():
         return jsonify({"error": f"Lỗi khi chạy seo: {err}"}), 500
 
     return jsonify({"status": "seo đã khởi động", "host": host, "proxy": proxy_file})
+    # Route captcha
+@app.route('/api/captcha', methods=['GET'])
+def run_captcha():
+    host = request.args.get('host')
+    time_param = request.args.get('time')
+    proxy_key = request.args.get('proxy', 'vn').lower()
+
+    if not host or not time_param:
+        return jsonify({"error": "Thiếu 'host' hoặc 'time'"}), 400
+
+    prx_flag, proxy_file = get_proxy_file(proxy_key)
+    if not proxy_file:
+        return jsonify({"error": "Proxy không hợp lệ, phải là 'vn', 'all' hoặc 'live'"}), 400
+
+    ok, err = run_prx_script(prx_flag)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy prx.py: {err}"}), 500
+
+    if not os.path.exists(proxy_file):
+        return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
+
+    cmd = ["node", "captcha.js", host, time_param, "6", "6", "22", proxy_file]
+    ok, err = start_background_node(cmd)
+    if not ok:
+        return jsonify({"error": f"Lỗi khi chạy browser.js: {err}"}), 500
+
+    return jsonify({"status": "captcha đã khởi động", "host": host, "proxy": proxy_file})
     # Route http
 @app.route('/api/http', methods=['GET'])
 def run_http():
