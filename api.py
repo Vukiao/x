@@ -197,7 +197,7 @@ def run_captcha():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
-    cmd = ["node", "captcha.js", host, time_param, "5", "3", "22", proxy_file]
+    cmd = ["node", "1.js", host, time_param, "5", "2", "22", proxy_file]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy captcha.js: {err}"}), 500
