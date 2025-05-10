@@ -197,7 +197,7 @@ def run_cf():
     if not os.path.exists(proxy_file):
         return jsonify({"error": f"Không tìm thấy file proxy: {proxy_file}"}), 500
 
-    cmd = ["node", "cf.js", host, 3, "1", time_param", proxy_file]
+    cmd = ["node", "cf.js", host, "3", "1", time_param", proxy_file]
     ok, err = start_background_node(cmd)
     if not ok:
         return jsonify({"error": f"Lỗi khi chạy cf.js: {err}"}), 500
