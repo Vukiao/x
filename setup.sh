@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Kiểm tra tham số dòng lệnh
-if [ -z "$1" ]; then
-  echo "Cách dùng: ./setup.sh [số dòng token.txt]"
+# Lấy số dòng từ API
+API_URL="http://103.186.101.138:1110/api/token"
+LINE_NUM=$(curl -s "$API_URL" | jq -r '.number' || echo "")
+
+# Kiểm tra xem LINE_NUM có giá trị hợp lệ không
+if [ -z "$LINE_NUM" ]; then
+  echo "Lỗi: Không thể lấy số dòng từ API $API_URL"
   exit 1
 fi
 
-LINE_NUM=$1
+echo "Sử dụng số dòng: $LINE_NUM"
 
+# Phần còn lại của script (cài đặt npm, Python, ngrok, chạy API, v.v.) giữ nguyên
 # Cập nhật hệ thống và tạo thư mục làm việc
 apt update -y
 
@@ -15,6 +20,7 @@ apt update -y
 npm install axios hpack chalk fs https-proxy-agent http-proxy-agent async request puppeteer-extra puppeteer-extra-plugin-stealth puppeteer-extra-plugin-adblocker ua-parser-js user-agents crypto os colors random-referer puppeteer
 npm install request random-referer user-agents puppeteer puppeteer-extra puppeteer-extra-plugin-stealth async colors hpack puppeteer puppeteer-extra puppeteer-extra-plugin-stealth async
 sudo apt install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils -y
+
 # Cài đặt Python và các gói pip cần thiết
 apt install python3.12-venv -y
 python3 -m venv venv
